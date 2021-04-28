@@ -3,19 +3,22 @@ package routehandler
 import (
 	"net/http"
 
-	"github.com/GoMetric/statsd-http-proxy/proxy/statsdclient"
+	"github.com/calibr/statsd-http-proxy/proxy/statsdclient"
+	"log"
 )
 
 // RouteHandler as a collection of route handlers
 type RouteHandler struct {
 	statsdClient statsdclient.StatsdClientInterface
 	metricPrefix string
+	keyPartHeader string
 }
 
 // NewRouteHandler creates collection of route handlers
 func NewRouteHandler(
 	statsdClient statsdclient.StatsdClientInterface,
 	metricPrefix string,
+	keyPartHeader string,
 ) *RouteHandler {
 	// prepare metric prefix
 	if metricPrefix != "" && (metricPrefix)[len(metricPrefix)-1:] != "." {
@@ -26,6 +29,7 @@ func NewRouteHandler(
 	routeHandler := RouteHandler{
 		statsdClient,
 		metricPrefix,
+		keyPartHeader,
 	}
 
 	return &routeHandler
@@ -42,19 +46,31 @@ func (routeHandler *RouteHandler) HandleMetric(
 	r *http.Request,
 	metricType string,
 	metricKeySuffix string,
+	keyPartHeader string,
 ) {
 	// get fully qualified metric key
 	metricKey := routeHandler.getFullyQualifiedMetricKey(metricKeySuffix)
+	var metricKeys [2]string
+	metricKeys[0] = metricKey
+	metricKeys[1] = ""
+
+	if keyPartHeader != "" {
+		keyPartValue := r.Header.Get(keyPartHeader)
+		log.Printf("Value: %s", keyPartValue)
+		if keyPartValue != "" {
+			metricKeys[1] = "by_country." + keyPartValue + "." + metricKey
+		}
+	}
 
 	// run handler
 	switch metricType {
 	case "count":
-		routeHandler.handleCountRequest(w, r, metricKey)
+		routeHandler.handleCountRequest(w, r, metricKeys)
 	case "gauge":
-		routeHandler.handleGaugeRequest(w, r, metricKey)
+		routeHandler.handleGaugeRequest(w, r, metricKeys)
 	case "timing":
-		routeHandler.handleTimingRequest(w, r, metricKey)
+		routeHandler.handleTimingRequest(w, r, metricKeys)
 	case "set":
-		routeHandler.handleSetRequest(w, r, metricKey)
+		routeHandler.handleSetRequest(w, r, metricKeys)
 	}
 }

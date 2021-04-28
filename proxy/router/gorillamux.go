@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/GoMetric/statsd-http-proxy/proxy/middleware"
-	"github.com/GoMetric/statsd-http-proxy/proxy/routehandler"
+	"github.com/calibr/statsd-http-proxy/proxy/middleware"
+	"github.com/calibr/statsd-http-proxy/proxy/routehandler"
 	"github.com/gorilla/mux"
 )
 
@@ -35,7 +35,7 @@ func NewGorillaMuxRouter(
 					metricType := vars["type"]
 					metricKeySuffix := vars["key"]
 
-					routeHandler.HandleMetric(w, r, metricType, metricKeySuffix)
+					routeHandler.HandleMetric(w, r, metricType, metricKeySuffix, "")
 				},
 			),
 			tokenSecret,

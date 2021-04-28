@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoMetric/statsd-http-proxy/proxy/routehandler"
-	"github.com/GoMetric/statsd-http-proxy/proxy/router"
-	"github.com/GoMetric/statsd-http-proxy/proxy/statsdclient"
+	"github.com/calibr/statsd-http-proxy/proxy/routehandler"
+	"github.com/calibr/statsd-http-proxy/proxy/router"
+	"github.com/calibr/statsd-http-proxy/proxy/statsdclient"
 )
 
 // Server is a proxy server between HTTP REST API and UDP Connection to StatsD
@@ -42,7 +42,10 @@ func NewServer(
 	verbose bool,
 	httpRouterName string,
 	statsdClientName string,
+	keyPartHeader string,
 ) *Server {
+	log.Printf("Creating a HTTP server")
+
 	// configure logging
 	var logOutput io.Writer
 	if verbose == true {
@@ -70,13 +73,14 @@ func NewServer(
 	routeHandler := routehandler.NewRouteHandler(
 		statsdClient,
 		metricPrefix,
+		keyPartHeader,
 	)
 
 	// build router
 	var httpServerHandler http.Handler
 	switch httpRouterName {
 	case "HttpRouter":
-		httpServerHandler = router.NewHTTPRouter(routeHandler, tokenSecret)
+		httpServerHandler = router.NewHTTPRouter(routeHandler, tokenSecret, keyPartHeader)
 	case "GorillaMux":
 		httpServerHandler = router.NewGorillaMuxRouter(routeHandler, tokenSecret)
 
@@ -111,6 +115,7 @@ func NewServer(
 
 // Listen starts listening HTTP connections
 func (proxyServer *Server) Listen() {
+	log.Printf("Listening")
 	// prepare for gracefull shutdown
 	gracefullStopSignalHandler := make(chan os.Signal, 1)
 	signal.Notify(gracefullStopSignalHandler, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

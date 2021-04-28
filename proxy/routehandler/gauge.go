@@ -6,7 +6,9 @@ import (
 )
 
 // Handle StatsD Gauge request
-func (routeHandler *RouteHandler) handleGaugeRequest(w http.ResponseWriter, r *http.Request, key string) {
+func (routeHandler *RouteHandler) handleGaugeRequest(w http.ResponseWriter, r *http.Request, keys [2]string) {
+	var key = keys[0]
+
 	// get gauge shift
 	shiftPostFormValue := r.PostFormValue("shift")
 	if shiftPostFormValue != "" {
@@ -34,5 +36,4 @@ func (routeHandler *RouteHandler) handleGaugeRequest(w http.ResponseWriter, r *h
 
 	// send gauge value request
 	routeHandler.statsdClient.Gauge(key, value)
-
 }

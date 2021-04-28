@@ -3,10 +3,11 @@ package routehandler
 import (
 	"net/http"
 	"strconv"
+	"log"
 )
 
 // Handle StatsD Timing request
-func (routeHandler *RouteHandler) handleTimingRequest(w http.ResponseWriter, r *http.Request, key string) {
+func (routeHandler *RouteHandler) handleTimingRequest(w http.ResponseWriter, r *http.Request, keys [2]string) {
 
 	// get timing
 	time, err := strconv.ParseInt(r.PostFormValue("time"), 10, 64)
@@ -25,6 +26,11 @@ func (routeHandler *RouteHandler) handleTimingRequest(w http.ResponseWriter, r *
 		}
 	}
 
-	// send request
-	routeHandler.statsdClient.Timing(key, time, float32(sampleRate))
+	for _, key := range keys {
+    if key != "" {
+			// send request
+			log.Printf("sending timing %s", key)
+			routeHandler.statsdClient.Timing(key, time, float32(sampleRate))
+    }
+	}
 }

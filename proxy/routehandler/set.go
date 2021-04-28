@@ -6,7 +6,7 @@ import (
 )
 
 // Handle StatsD Set request
-func (routeHandler *RouteHandler) handleSetRequest(w http.ResponseWriter, r *http.Request, key string) {
+func (routeHandler *RouteHandler) handleSetRequest(w http.ResponseWriter, r *http.Request, keys [2]string) {
 	// get set value
 	var value = 1
 	valuePostFormValue := r.PostFormValue("value")
@@ -18,6 +18,11 @@ func (routeHandler *RouteHandler) handleSetRequest(w http.ResponseWriter, r *htt
 		}
 	}
 
-	// send request
-	routeHandler.statsdClient.Set(key, value)
+	for _, key := range keys {
+    if key != "" {
+			// send request
+			routeHandler.statsdClient.Set(key, value)
+    }
+	}
+
 }

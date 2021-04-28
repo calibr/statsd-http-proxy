@@ -24,3 +24,6 @@ src
 
 # module files
 vendor
+
+*.sublime-project
+*.sublime-workspace
